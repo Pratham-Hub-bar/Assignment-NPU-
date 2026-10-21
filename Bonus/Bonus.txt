@@ -1,0 +1,61 @@
+module simd_alu (
+    input [127:0] A,
+    input [127:0] B,
+    input op_sel,    
+    input [1:0] width_sel, 
+    output reg [127:0] Y
+);
+    wire [127:0] Y_8, Y_16, Y_32;
+
+    genvar i;
+
+     
+    // 8-bit elements -> 16 parallel arithmetic operations   
+    generate
+        for (i = 0; i < 16; i = i + 1) begin : gen_8
+            wire [8:0] sum  = A[i*8 +: 8] + B[i*8 +: 8];
+            wire [8:0] diff = A[i*8 +: 8] - B[i*8 +: 8];
+            
+            assign Y_8[i*8 +: 8] = (op_sel == 1'b0) ? 
+                (sum > 9'h0FF ? 8'hFF : sum[7:0]) :                     // Saturating Add
+                ((A[i*8 +: 8] < B[i*8 +: 8]) ? 8'h00 : diff[7:0]);      // Saturating Sub
+        end
+    endgenerate
+
+     
+    // 16-bit elements -> 8 parallel arithmetic operations
+    generate
+        for (i = 0; i < 8; i = i + 1) begin : gen_16
+            wire [16:0] sum  = A[i*16 +: 16] + B[i*16 +: 16];
+            wire [16:0] diff = A[i*16 +: 16] - B[i*16 +: 16];
+            
+            assign Y_16[i*16 +: 16] = (op_sel == 1'b0) ? 
+                (sum > 17'h0FFFF ? 16'hFFFF : sum[15:0]) :              // Saturating Add
+                ((A[i*16 +: 16] < B[i*16 +: 16]) ? 16'h0000 : diff[15:0]); // Saturating Sub
+        end
+    endgenerate
+
+     
+    // 32-bit elements -> 4 parallel arithmetic operations    
+    generate
+        for (i = 0; i < 4; i = i + 1) begin : gen_32
+            wire [32:0] sum  = A[i*32 +: 32] + B[i*32 +: 32];
+            wire [32:0] diff = A[i*32 +: 32] - B[i*32 +: 32];
+            
+            assign Y_32[i*32 +: 32] = (op_sel == 1'b0) ? 
+                (sum > 33'h0FFFFFFFF ? 32'hFFFFFFFF : sum[31:0]) :      // Saturating Add
+                ((A[i*32 +: 32] < B[i*32 +: 32]) ? 32'h00000000 : diff[31:0]); // Saturating Sub
+        end
+    endgenerate
+
+    // Output multiplexer based on width configuration
+    always @(*) begin
+        case (width_sel)
+            2'b00: Y = Y_8;
+            2'b01: Y = Y_16;
+            2'b10: Y = Y_32;
+            default: Y = 128'h0;
+        endcase
+    end
+
+endmodule

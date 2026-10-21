@@ -1,0 +1,69 @@
+module tb_simd_alu();
+    reg  [127:0] A;
+    reg  [127:0] B;
+    reg          op_sel;
+    reg  [1:0]   width_sel;
+    wire [127:0] Y;
+
+    simd_alu uut (
+        .A(A), 
+        .B(B), 
+        .op_sel(op_sel), 
+        .width_sel(width_sel), 
+        .Y(Y)
+    );
+
+    initial begin
+        // Initialize Inputs
+        A = 0; B = 0; op_sel = 0; width_sel = 0;
+
+        // TEST 1: 8-bit Mode
+        width_sel = 2'b00; 
+        
+        // 8-bit Normal & Saturating Addition
+        op_sel = 0; 
+        A[7:0] = 8'd250; B[7:0] = 8'd20; 
+        A[15:8] = 8'd10; B[15:8] = 8'd15;
+        #10;
+        
+        // 8-bit Normal & Saturating Subtraction
+        op_sel = 1;
+        A[7:0] = 8'd20;  B[7:0] = 8'd250; 
+        A[15:8] = 8'd15; B[15:8] = 8'd10;
+        #10;
+
+         
+        // TEST 2: 16-bit Mode (width_sel = 01)
+         
+        width_sel = 2'b01; 
+        
+        // 16-bit Normal & Saturating Addition
+        op_sel = 0;
+        A[15:0] = 16'd65000; B[15:0] = 16'd1000;
+        A[31:16] = 16'd1000; B[31:16] = 16'd2000;
+        #10;
+
+        // 16-bit Normal & Saturating Subtraction
+        op_sel = 1;
+        A[15:0] = 16'd1000;  B[15:0] = 16'd65000;
+        A[31:16] = 16'd2000; B[31:16] = 16'd1000;
+        #10;
+
+         
+        // TEST 3: 32-bit Mode
+        width_sel = 2'b10; 
+        
+        // 32-bit Normal & Saturating Addition
+        op_sel = 0;
+        A[31:0] = 32'd4294967000; B[31:0] = 32'd1000;
+        A[63:32] = 32'd500;       B[63:32] = 32'd500;
+        #10;
+
+        // 32-bit Normal & Saturating Subtraction
+        op_sel = 1;
+        A[31:0] = 32'd100;   B[31:0] = 32'd500;
+        A[63:32] = 32'd1000; B[63:32] = 32'd500;
+        #10;
+        $stop;
+    end
+endmodule
