@@ -1,0 +1,11 @@
+//My friend told that my code doesn't replicate the actual diagram but I find this version to be easier to understand, hence I didn't change.
+
+The optimized multiplier initially stores multiplicand in a temporary register and product  = 0;
+If current multiplier bit is 1 then
+  add the temp register to the product.
+[If multiplier bit is 0 there is no need to add it to the product.]
+
+Left shift the temp register no matter what the outcome of the previous condition is.
+[This is to mimic how in actual multiplication too, the multiplicand is shifted once and then added together]
+
+Repeat the above steps for all the bits of multiplier (right to left).
