@@ -1,0 +1,88 @@
+module round_robin_arbiter(
+    input clk, reset, 
+    input [3:0] req,
+    output reg [3:0] gnt);
+
+    reg [2:0] cur_state, next_state;
+
+    parameter initial_state=3'b000;			//Initial state - The arbiter starts from this state.
+    parameter [2:0] s1 = 3'b001;		
+    parameter [2:0] s2 = 3'b010;
+    parameter [2:0] s3 = 3'b011;
+    parameter [2:0] s4 = 3'b100;
+
+	// Priority order for
+	//Initial - 0 > 1 > 2 > 3
+	//S1 - 1 > 2 > 3 > 0
+	//S2 - 2 > 3 > 0 > 1
+	//S3 - 3 > 0 > 1 > 2
+	//S4 - 0 > 1 > 2 > 3
+	// It might appear that initial and S4 are redundant but they have different outputs. 
+    
+    always @(posedge clk, posedge reset)
+    begin: Next_State_Logic_Seq
+        if(reset)
+            cur_state <= initial_state;
+        else
+            cur_state <= next_state;
+    end
+
+    always @(*)
+    begin: Next_State_Logic_Comb
+        case(cur_state)
+            initial_state:  casez(req)
+                                4'bzzz1 : next_state = s1;
+                                4'bzz10 : next_state = s2;			//At each state check the req input to calculate the next state which in turns calculates output
+                                4'bz100 : next_state = s3;
+                                4'b1000 : next_state = s4;
+                                default: next_state = cur_state;
+                            endcase 
+
+            s1:             casez(req)
+                                4'bzz1z : next_state = s2;
+                                4'bz10z : next_state = s3;
+                                4'b100z : next_state = s4;
+                                4'b0001 : next_state = s1;
+                                default: next_state = cur_state;
+                            endcase
+
+            s2:             casez(req)
+                                4'bz1zz : next_state = s3;
+                                4'b10zz : next_state = s4;
+                                4'b00z1 : next_state = s1;
+                                4'b0010 : next_state = s2;
+                                default: next_state = cur_state;
+                            endcase
+
+            s3:             casez(req)
+                                4'b1zzz : next_state = s4;
+                                4'b0zz1 : next_state = s1;
+                                4'b0z10 : next_state = s2;
+                                4'b0100 : next_state = s3;
+                                default: next_state = cur_state;
+                            endcase
+
+            s4:             casez(req)
+                                4'bzzz1 : next_state = s1;
+                                4'bzz10 : next_state = s2;
+                                4'bz100 : next_state = s3;
+                                4'b1000 : next_state = s4;
+                                default: next_state = cur_state;
+                            endcase  
+
+            default: next_state = initial_state;
+        endcase
+    end
+
+    always @(*)
+    begin: Output_Forming_Logic
+        case(cur_state)
+            s1: gnt = 4'b0001;		//S1 - gnt[0] is high
+            s2: gnt = 4'b0010;		//S2 - gnt[1] is high
+            s3: gnt = 4'b0100;		//S3 - gnt[2] is high
+            s4: gnt = 4'b1000;		//S4 - gnt[3] is high
+            default: gnt = 4'b0000;
+        endcase
+    end 
+
+endmodule                                                                                 
