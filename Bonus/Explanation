@@ -1,0 +1,11 @@
+In my code, I have three copies of Y:- Y_8, Y_16, Y_32  and I assign the value based on width_sel input. 
+[It  is kind of a waste of space but I tried for functions and you cannot use generate inside functions and tasks. Maybe I could use submodules 
+but that would need separate files so I just went with this. Can you share others' codes? I would like to see how others did it]
+
+Depending on width_sel input one of them is selected. (say 01 hence, 16 mode)
+I have used the maximum value in such a way that only certain no of loops are executed and others are in parallel.
+[For example, in 16 mode, the max value of i is 8 (actually 7) so 128 bits is divided into 8 parts and 16 bits are added at once]
+
+At the end of each loop the index is increased so that it reaches the 1+ the highest index of previous loop.
+
+Also at the end the saturating add and sub have the numbers locked between 0 and max_value(which also depends on width_sel).
