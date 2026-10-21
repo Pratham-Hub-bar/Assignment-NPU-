@@ -1,0 +1,12 @@
+The Arbiter has five states. The priority order of bits in each state is given as follows-
+Initial - 0 > 1 > 2 > 3
+S1 - 1 > 2 > 3 > 0
+S2 - 2 > 3 > 0 > 1
+S3 - 3 > 0 > 1 > 2
+S4 - 0 > 1 > 2 > 3
+It might appear that initial and S4 are redundant but they have different outputs. 
+
+I tried a Moore approach, I don't know about the Mealy version of this.
+
+So at each state, req variable is checked and according to the priority next state is assigned as well as the output.
+    
